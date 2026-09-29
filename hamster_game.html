@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hamster Kombat</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    width: 100%; min-height: 100vh;
+    display: flex; justify-content: center;
+    background: #000; color: #fff;
+    overflow-x: hidden;
+    user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .app {
+    width: 100%; max-width: 420px; min-height: 100vh;
+    display: flex; flex-direction: column;
+    background: #1a1a1a; position: relative; overflow: hidden;
+  }
+
+  /* ─── Top Bar ─── */
+  .top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px 8px;
+  }
+  .top-bar .back-icon { font-size: 1.3rem; opacity: 0.6; cursor: pointer; }
+  .top-bar .title { font-size: 1rem; font-weight: 700; }
+  .top-bar .menu-icon { font-size: 1.2rem; opacity: 0.6; cursor: pointer; }
+
+  /* ─── Profile Row ─── */
+  .profile-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 4px 16px 8px;
+  }
+  .profile-left { display: flex; align-items: center; gap: 8px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #f5a623, #e17b1a);
+    display: flex; align-items: center; justify-content: center; font-size: 0.9rem;
+  }
+  .profile-name { font-size: 0.8rem; font-weight: 600; }
+  .profile-tag { font-size: 0.65rem; opacity: 0.5; }
+
+  /* ─── Profit Row ─── */
+  .profit-row {
+    display: flex; justify-content: center; align-items: center;
+    gap: 6px; padding: 2px 16px 6px; font-size: 0.7rem; opacity: 0.5;
+  }
+
+  /* ─── Daily Cards ─── */
+  .daily-cards { display: flex; gap: 8px; padding: 6px 16px 10px; }
+  .daily-card {
+    flex: 1; min-width: 75px;
+    background: rgba(255,255,255,0.06); border-radius: 12px;
+    padding: 10px 6px 8px; text-align: center; cursor: pointer;
+    transition: background 0.2s; border: 1px solid rgba(255,255,255,0.04);
+  }
+  .daily-card:hover { background: rgba(255,255,255,0.1); }
+  .daily-card .card-icon { font-size: 1.6rem; display: block; margin-bottom: 4px; }
+  .daily-card .card-label { font-size: 0.55rem; font-weight: 600; opacity: 0.8; display: block; }
+  .daily-card .card-timer { font-size: 0.5rem; opacity: 0.35; margin-top: 3px; display: block; }
+
+  /* ─── Coin Balance ─── */
+  .coin-balance {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; padding: 12px 0 4px;
+  }
+  .coin-balance .coin-img {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #f5c518, #e8a00e);
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    box-shadow: 0 0 12px rgba(245,197,24,0.4);
+  }
+  .coin-balance .amount { font-size: 2.4rem; font-weight: 900; }
+
+  /* ─── Tap Value Display ─── */
+  .tap-value-display {
+    text-align: center; font-size: 0.75rem; opacity: 0.5; margin-top: 2px;
+  }
+
+  /* ─── Hamster Circle ─── */
+  .hamster-container {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 8px 0; position: relative;
+  }
+  .hamster-circle {
+    width: 280px; height: 280px; border-radius: 50%;
+    position: relative; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.06s ease; overflow: hidden;
+  }
+  .hamster-circle:active { transform: scale(0.95); }
+
+  .glow-border {
+    position: absolute; inset: 0; border-radius: 50%; padding: 3px;
+    background: linear-gradient(180deg, #2563eb 0%, #1e40af 50%, #3b82f6 100%);
+    box-shadow: 0 0 30px rgba(37,99,235,0.3), inset 0 0 30px rgba(37,99,235,0.1);
+  }
+  .glow-inner {
+    width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; background: #12121a;
+  }
+  .hamster-img {
+    width: 100%; height: 100%; object-fit: cover;
+    pointer-events: none; border-radius: 50%;
+    transition: opacity 0.4s ease;
+  }
+  .hamster-circle:active .hamster-img { transform: scale(0.97); }
+
+  /* ─── Energy Row ─── */
+  .energy-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 20px 8px;
+  }
+  .energy-left { display: flex; align-items: center; gap: 6px; }
+  .energy-left .bolt { font-size: 1.1rem; }
+  .energy-left .energy-text { font-size: 0.85rem; font-weight: 700; }
+  .energy-left .energy-text span { opacity: 0.4; font-weight: 400; }
+
+  /* Boost button */
+  .boost-btn {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    background: rgba(255,255,255,0.06); padding: 6px 14px;
+    border-radius: 10px; border: 1px solid rgba(255,255,255,0.08);
+    transition: all 0.3s; position: relative; color: #fff;
+  }
+  .boost-btn:hover { background: rgba(255,255,255,0.1); }
+  .boost-btn .boost-icon { font-size: 1rem; }
+
+  /* Boost glow animation when hint active */
+  .boost-btn.hint-active {
+    background: linear-gradient(135deg, rgba(245,166,35,0.2), rgba(245,166,35,0.1));
+    border-color: #f5a623;
+    box-shadow: 0 0 20px rgba(245,166,35,0.3), 0 0 40px rgba(245,166,35,0.1);
+    animation: boost-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes boost-pulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(245,166,35,0.3), 0 0 40px rgba(245,166,35,0.1); }
+    50% { box-shadow: 0 0 30px rgba(245,166,35,0.5), 0 0 60px rgba(245,166,35,0.2); }
+  }
+
+  /* ─── Boost Tooltip ─── */
+  .boost-tooltip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    right: 0;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid #f5a623;
+    border-radius: 14px;
+    padding: 12px 16px;
+    width: 220px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(245,166,35,0.15);
+    z-index: 50;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: all 0.3s ease;
+  }
+  .boost-tooltip.visible {
+    opacity: 1; transform: translateY(0); pointer-events: auto;
+  }
+  .boost-tooltip::after {
+    content: '';
+    position: absolute; top: 100%; right: 30px;
+    border: 8px solid transparent; border-top-color: #f5a623;
+  }
+  .boost-tooltip .tip-title {
+    font-size: 0.75rem; font-weight: 800; color: #f5a623;
+    margin-bottom: 4px; display: flex; align-items: center; gap: 6px;
+  }
+  .boost-tooltip .tip-desc {
+    font-size: 0.65rem; opacity: 0.7; line-height: 1.4; color: #cbd5e1;
+  }
+  .boost-tooltip .tip-cost {
+    margin-top: 8px; font-size: 0.7rem; font-weight: 700;
+    color: #fbbf24; display: flex; align-items: center; gap: 4px;
+  }
+
+  .energy-bar-wrapper { padding: 0 20px 12px; }
+  .energy-bar-bg {
+    width: 100%; height: 10px; background: rgba(255,255,255,0.06);
+    border-radius: 10px; overflow: hidden;
+  }
+  .energy-bar-fill {
+    height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    border-radius: 10px; transition: width 0.15s;
+    box-shadow: 0 0 8px rgba(59,130,246,0.3);
+  }
+  .energy-bar-fill.low {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+    box-shadow: 0 0 8px rgba(239,68,68,0.3);
+  }
+
+  /* ─── Bottom Nav ─── */
+  .bottom-nav {
+    display: flex; justify-content: space-around; align-items: flex-end;
+    padding: 8px 4px 14px;
+    background: rgba(255,255,255,0.03);
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; padding: 4px 8px; border-radius: 10px;
+    transition: background 0.2s; position: relative;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); }
+  .nav-item .nav-icon { font-size: 1.3rem; }
+  .nav-item .nav-label { font-size: 0.55rem; font-weight: 500; opacity: 0.5; }
+  .nav-item.active .nav-label { opacity: 1; color: #f5a623; }
+  .nav-item.active::after {
+    content: ''; position: absolute; bottom: -2px;
+    width: 20px; height: 3px; background: #f5a623; border-radius: 3px;
+  }
+
+  /* ─── Floating +N ─── */
+  .float-plus {
+    position: fixed; font-size: 2rem; font-weight: 900; color: #fff;
+    pointer-events: none; animation: float-up 0.9s ease-out forwards;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5); z-index: 100;
+  }
+  @keyframes float-up {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    60%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-130px) scale(1.5); }
+  }
+
+  /* ─── Particles ─── */
+  .particle {
+    position: fixed; width: 5px; height: 5px; border-radius: 50%;
+    pointer-events: none; z-index: 99;
+    animation: particle-fly 0.6s ease-out forwards;
+  }
+  @keyframes particle-fly {
+    0%   { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx),var(--dy)) scale(0.2); }
+  }
+
+  /* ─── Upgrade flash overlay ─── */
+  .upgrade-flash {
+    position: fixed; inset: 0; z-index: 300;
+    background: radial-gradient(circle, rgba(245,166,35,0.4), transparent 70%);
+    pointer-events: none;
+    animation: flash-out 0.8s ease-out forwards;
+  }
+  @keyframes flash-out {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ─── White BG ─── */
+  body.white-bg { background: #fff; }
+  body.white-bg .app { background: #fff; color: #222; }
+  body.white-bg .daily-card { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.06); }
+  body.white-bg .energy-bar-bg { background: rgba(0,0,0,0.06); }
+  body.white-bg .bottom-nav { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+  body.white-bg .glow-inner { background: #e8eaf0; }
+  body.white-bg .float-plus { color: #333; text-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  body.white-bg .boost-btn { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.08); color: #222; }
+
+  /* ─── SHOP MODAL ─── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 200;
+    justify-content: center; align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .shop-modal {
+    width: 100%; max-width: 420px;
+    background: linear-gradient(180deg, #1e1e2e 0%, #141420 100%);
+    border-radius: 24px 24px 0 0;
+    padding: 0 0 32px; animation: slide-up 0.35s ease;
+    overflow: hidden;
+  }
+  body.white-bg .shop-modal { background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%); color: #222; }
+
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .shop-top-bar {
+    background: linear-gradient(135deg, rgba(245,166,35,0.15), rgba(245,166,35,0.05));
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid rgba(245,166,35,0.1);
+  }
+  .shop-header {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .shop-header h2 { font-size: 1.3rem; font-weight: 900; }
+  .shop-header h2 span { color: #f5a623; }
+  .shop-close {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: none; color: #fff;
+    font-size: 1.1rem; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; transition: background 0.2s;
+  }
+  body.white-bg .shop-close { background: rgba(0,0,0,0.06); color: #333; }
+  .shop-close:hover { background: rgba(255,255,255,0.15); }
+
+  .shop-balance-bar {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 12px; font-size: 0.8rem;
+  }
+  .shop-balance-bar .sb-label { opacity: 0.5; }
+  .shop-balance-bar .sb-amount { font-weight: 800; color: #f5a623; font-size: 1.1rem; }
+
+  .shop-items-area { padding: 16px 16px 0; max-height: 50vh; overflow-y: auto; }
+
+  .shop-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.04); border-radius: 16px;
+    padding: 14px 16px; margin-bottom: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s;
+  }
+  .shop-item:hover { background: rgba(255,255,255,0.07); }
+  body.white-bg .shop-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.05); }
+
+  .shop-item-left { display: flex; align-items: center; gap: 14px; }
+  .shop-item-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    background: linear-gradient(135deg, rgba(245,166,35,0.15), rgba(245,166,35,0.05));
+  }
+  .shop-item-name { font-size: 0.85rem; font-weight: 700; }
+  .shop-item-desc { font-size: 0.6rem; opacity: 0.45; margin-top: 2px; }
+
+  .shop-buy-btn {
+    padding: 10px 20px; border-radius: 12px; border: none;
+    font-size: 0.75rem; font-weight: 800; cursor: pointer;
+    transition: all 0.2s; font-family: inherit; white-space: nowrap;
+  }
+  .shop-buy-btn.can-buy {
+    background: linear-gradient(135deg, #f5a623, #e8a00e);
+    color: #000; box-shadow: 0 4px 16px rgba(245,166,35,0.3);
+  }
+  .shop-buy-btn.can-buy:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 24px rgba(245,166,35,0.4);
+  }
+  .shop-buy-btn.cant-buy {
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.25);
+    cursor: not-allowed;
+  }
+  body.white-bg .shop-buy-btn.cant-buy { background: rgba(0,0,0,0.04); color: rgba(0,0,0,0.2); }
+  .shop-buy-btn.owned {
+    background: rgba(76,175,80,0.12); color: #4caf50;
+    cursor: default; box-shadow: 0 0 12px rgba(76,175,80,0.15);
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="back-icon">←</div>
+    <div class="title">Hamster Kombat</div>
+    <div class="menu-icon">⋮</div>
+  </div>
+
+  <!-- Profile -->
+  <div class="profile-row">
+    <div class="profile-left">
+      <div class="avatar">🐹</div>
+      <div>
+        <div class="profile-name">Player <span class="profile-tag">(CEO)</span></div>
+      </div>
+    </div>
+    <div style="font-size:1.1rem;">🪙</div>
+  </div>
+
+  <!-- Profit -->
+  <div class="profit-row">
+    <span>💰</span>
+    <span>Profit per tap: +<span id="tapValShow">1</span></span>
+  </div>
+
+  <!-- Daily Cards -->
+  <div class="daily-cards">
+    <div class="daily-card"><span class="card-icon">🎁</span><span class="card-label">Daily reward</span><span class="card-timer">--:--</span></div>
+    <div class="daily-card"><span class="card-icon">🔐</span><span class="card-label">Daily cipher</span><span class="card-timer">--:--</span></div>
+    <div class="daily-card"><span class="card-icon">🧩</span><span class="card-label">Daily combo</span><span class="card-timer">--:--</span></div>
+    <div class="daily-card"><span class="card-icon">🎮</span><span class="card-label">Mini-game</span><span class="card-timer">--:--</span></div>
+  </div>
+
+  <!-- Coin Balance -->
+  <div class="coin-balance">
+    <div class="coin-img">💰</div>
+    <div class="amount" id="balanceNum">0</div>
+  </div>
+  <div class="tap-value-display">+<span id="tapValShow2">1</span> per tap</div>
+
+  <!-- Hamster -->
+  <div class="hamster-container">
+    <div class="hamster-circle" id="hamsterCircle">
+      <div class="glow-border">
+        <div class="glow-inner">
+          <img class="hamster-img" id="hamsterImg" src="hamster_1.jpg" alt="Hamster" draggable="false">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Energy -->
+  <div class="energy-row">
+    <div class="energy-left">
+      <span class="bolt">⚡</span>
+      <div class="energy-text">
+        <span id="energyCur">1000</span> <span>/ 1000</span>
+      </div>
+    </div>
+    <div class="boost-btn" id="boostBtn" style="position:relative;">
+      <span class="boost-icon">🚀</span>
+      <span>Boost</span>
+      <!-- Tooltip -->
+      <div class="boost-tooltip" id="boostTooltip">
+        <div class="tip-title">🎯 Yangilash mavjud!</div>
+        <div class="tip-desc">Tangalaringiz yetarli! Boost bosib hamsteringizni kuchaytiring!</div>
+        <div class="tip-cost">🪙 <span id="tipCost">100</span> tanga kerak</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="energy-bar-wrapper">
+    <div class="energy-bar-bg">
+      <div class="energy-bar-fill" id="energyBar" style="width:100%"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item"><span class="nav-icon">💱</span><span class="nav-label">Exchange</span></div>
+    <div class="nav-item"><span class="nav-icon">⛏️</span><span class="nav-label">Mine</span></div>
+    <div class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Friends</span></div>
+    <div class="nav-item"><span class="nav-icon">💰</span><span class="nav-label">Earn</span></div>
+    <div class="nav-item active"><span class="nav-icon">🎁</span><span class="nav-label">Airdrop</span></div>
+  </div>
+</div>
+
+<!-- SHOP MODAL -->
+<div class="modal-overlay" id="shopModal">
+  <div class="shop-modal">
+    <div class="shop-top-bar">
+      <div class="shop-header">
+        <h2>🚀 <span>Boost</span> Shop</h2>
+        <button class="shop-close" id="shopClose">✕</button>
+      </div>
+      <div class="shop-balance-bar">
+        <span class="sb-label">Balansingiz:</span>
+        <span class="sb-amount">🪙 <span id="shopBalance">0</span></span>
+      </div>
+    </div>
+    <div class="shop-items-area" id="shopItems"></div>
+  </div>
+</div>
+
+<script>
+  // ─── State ───
+  let coins    = 0;
+  let energy   = 1000;
+  const maxE   = 1000;
+  let tapValue = 1;
+  let bgWhite  = false;
+  let hintShown = false;
+  let hintDismissed = false;
+
+  // ─── Upgrades: image changes with each ───
+  const upgrades = [
+    { id:'tap2',  name:'+2 per tap',  desc:'Hamster sal yaxshiroq kayfiyatda', tapVal:2,  cost:100,   icon:'👆', img:'hamster_2.jpg',  bought:false },
+    { id:'tap5',  name:'+5 per tap',  desc:'Hamster xursand va kuchli',        tapVal:5,  cost:500,   icon:'✌️', img:'hamster_5.jpg',  bought:false },
+    { id:'tap10', name:'+10 per tap', desc:'Hamster jangchi bo\'ldi!',          tapVal:10, cost:2000,  icon:'🖐️', img:'hamster_10.jpg', bought:false },
+    { id:'tap25', name:'+25 per tap', desc:'Hamster super kuchli!',             tapVal:25, cost:10000, icon:'💪', img:'hamster_25.jpg', bought:false },
+    { id:'tap50', name:'+50 per tap', desc:'Hamster LEGENDARY!',                tapVal:50, cost:50000, icon:'🔥', img:'hamster_50.jpg', bought:false },
+  ];
+
+  // ─── DOM ───
+  const balanceEl    = document.getElementById('balanceNum');
+  const energyCurEl  = document.getElementById('energyCur');
+  const energyBarEl  = document.getElementById('energyBar');
+  const tapValEl     = document.getElementById('tapValShow');
+  const tapValEl2    = document.getElementById('tapValShow2');
+  const hamsterEl    = document.getElementById('hamsterCircle');
+  const hamsterImg   = document.getElementById('hamsterImg');
+  const boostBtn     = document.getElementById('boostBtn');
+  const boostTooltip = document.getElementById('boostTooltip');
+  const tipCostEl    = document.getElementById('tipCost');
+  const shopModal    = document.getElementById('shopModal');
+  const shopClose    = document.getElementById('shopClose');
+  const shopItems    = document.getElementById('shopItems');
+  const shopBalanceEl= document.getElementById('shopBalance');
+
+  function formatNum(n) {
+    if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+    return n.toLocaleString();
+  }
+
+  function getNextUpgrade() {
+    return upgrades.find(u => !u.bought);
+  }
+
+  function updateUI() {
+    balanceEl.textContent = formatNum(coins);
+    energyCurEl.textContent = energy;
+    tapValEl.textContent = tapValue;
+    tapValEl2.textContent = tapValue;
+    const pct = (energy / maxE) * 100;
+    energyBarEl.style.width = pct + '%';
+    energyBarEl.classList.toggle('low', pct < 20);
+
+    // Check if hint should show
+    checkBoostHint();
+  }
+
+  function checkBoostHint() {
+    const next = getNextUpgrade();
+    if (!next) {
+      // All bought
+      boostBtn.classList.remove('hint-active');
+      boostTooltip.classList.remove('visible');
+      return;
+    }
+
+    if (coins >= next.cost && !hintDismissed) {
+      boostBtn.classList.add('hint-active');
+      boostTooltip.classList.add('visible');
+      tipCostEl.textContent = formatNum(next.cost);
+    } else {
+      boostBtn.classList.remove('hint-active');
+      boostTooltip.classList.remove('visible');
+    }
+  }
+
+  // ─── Float +N ───
+  function spawnFloat(x, y, val) {
+    const el = document.createElement('div');
+    el.className = 'float-plus';
+    el.textContent = `+${val}`;
+    el.style.left = (x - 20) + 'px';
+    el.style.top  = (y - 20) + 'px';
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+
+  // ─── Particles ───
+  function spawnParticles(x, y) {
+    const colors = ['#f5a623','#ffeaa7','#3b82f6','#60a5fa','#fff','#fbbf24'];
+    for (let i = 0; i < 8; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = x + 'px';
+      p.style.top  = y + 'px';
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      const a = Math.random() * Math.PI * 2;
+      const d = 30 + Math.random() * 70;
+      p.style.setProperty('--dx', Math.cos(a)*d + 'px');
+      p.style.setProperty('--dy', Math.sin(a)*d + 'px');
+      document.body.appendChild(p);
+      p.addEventListener('animationend', () => p.remove());
+    }
+  }
+
+  // ─── Upgrade flash ───
+  function flashUpgrade() {
+    const f = document.createElement('div');
+    f.className = 'upgrade-flash';
+    document.body.appendChild(f);
+    f.addEventListener('animationend', () => f.remove());
+  }
+
+  // ─── Tap ───
+  function handleTap(x, y) {
+    if (energy <= 0) return;
+    energy = Math.max(0, energy - 1);
+    coins += tapValue;
+    spawnFloat(x, y, tapValue);
+    spawnParticles(x, y);
+    if (!bgWhite) { document.body.classList.add('white-bg'); bgWhite = true; }
+    updateUI();
+  }
+
+  hamsterEl.addEventListener('click', (e) => handleTap(e.clientX, e.clientY));
+  hamsterEl.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    for (const t of e.changedTouches) handleTap(t.clientX, t.clientY);
+  });
+
+  // ─── Energy Regen ───
+  setInterval(() => {
+    if (energy < maxE) { energy = Math.min(maxE, energy + 3); updateUI(); }
+  }, 1000);
+
+  // ─── Timers ───
+  function updateTimers() {
+    const now = new Date();
+    const end = new Date(now); end.setHours(23,59,59,999);
+    const diff = end - now;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const ts = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+    document.querySelectorAll('.card-timer').forEach(el => el.textContent = ts);
+  }
+  updateTimers(); setInterval(updateTimers, 60000);
+
+  // ─── SHOP ───
+  boostBtn.addEventListener('click', () => {
+    hintDismissed = true;
+    boostTooltip.classList.remove('visible');
+    openShop();
+  });
+  shopClose.addEventListener('click', closeShop);
+  shopModal.addEventListener('click', (e) => { if (e.target === shopModal) closeShop(); });
+
+  function openShop() { renderShop(); shopModal.classList.add('open'); }
+  function closeShop() {
+    shopModal.classList.remove('open');
+    hintDismissed = false;
+    checkBoostHint();
+  }
+
+  function renderShop() {
+    shopBalanceEl.textContent = formatNum(coins);
+    shopItems.innerHTML = '';
+    upgrades.forEach((u, idx) => {
+      const prevBought = idx === 0 ? true : upgrades[idx-1].bought;
+      const locked = !prevBought && !u.bought;
+      const canBuy = coins >= u.cost && !u.bought && prevBought;
+
+      let btnClass = 'shop-buy-btn ';
+      let btnText  = '';
+      if (u.bought)       { btnClass += 'owned';    btnText = '✅ Olingan'; }
+      else if (locked)    { btnClass += 'cant-buy';  btnText = '🔒 Yopiq'; }
+      else if (canBuy)    { btnClass += 'can-buy';   btnText = '🪙 ' + formatNum(u.cost); }
+      else                { btnClass += 'cant-buy';  btnText = '🪙 ' + formatNum(u.cost); }
+
+      const div = document.createElement('div');
+      div.className = 'shop-item';
+      div.innerHTML = `
+        <div class="shop-item-left">
+          <div class="shop-item-icon">${u.icon}</div>
+          <div>
+            <div class="shop-item-name">${u.name}</div>
+            <div class="shop-item-desc">${u.desc}</div>
+          </div>
+        </div>
+        <button class="${btnClass}" data-idx="${idx}">${btnText}</button>
+      `;
+      shopItems.appendChild(div);
+    });
+
+    document.querySelectorAll('.shop-buy-btn.can-buy').forEach(btn => {
+      btn.addEventListener('click', () => buyUpgrade(parseInt(btn.dataset.idx)));
+    });
+  }
+
+  function buyUpgrade(idx) {
+    const u = upgrades[idx];
+    if (coins < u.cost || u.bought) return;
+    coins -= u.cost;
+    u.bought = true;
+    tapValue = u.tapVal;
+
+    // Change hamster image
+    hamsterImg.style.opacity = '0';
+    setTimeout(() => {
+      hamsterImg.src = u.img;
+      hamsterImg.style.opacity = '1';
+    }, 300);
+
+    // Flash effect
+    flashUpgrade();
+
+    updateUI();
+    renderShop();
+  }
+
+  // ─── Init ───
+  updateUI();
+</script>
+</body>
+</html>
